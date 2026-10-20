@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>پنل مدیریت تخفیف‌کده</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet">
+    <style>
+        body { font-family: 'Vazirmatn', sans-serif; }
+
+        /* ------------------------------------------------- */
+        /* Tooltip سفارشی و فوری (بدون تأخیر مرورگر)          */
+        /* ------------------------------------------------- */
+        [data-tip] {
+            position: relative;
+            cursor: help;
+        }
+
+        [data-tip]:hover::after {
+            content: attr(data-tip);
+            position: absolute;
+            top: 130%;
+            left: 0;
+            background: #0f172a;
+            color: #f8fafc;
+            padding: 10px 14px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: normal;
+            line-height: 2;
+            width: 300px;
+            max-width: 80vw;
+            text-align: right;
+            white-space: normal;
+            z-index: 60;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, .25);
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 min-h-screen text-slate-800 p-4 md:p-8">
+
+<div class="max-w-7xl mx-auto">
+
+    <!-- ===================================================== -->
+    <!-- سربرگ -->
+    <!-- ===================================================== -->
+    <div class="flex flex-col md:flex-row justify-between gap-4 items-start md:items-center mb-8">
+        <div>
+            <p class="text-sm text-indigo-600 font-bold mb-1">تخفیف‌کده</p>
+            <h1 class="text-2xl md:text-3xl font-black text-slate-900">پنل مدیریت</h1>
+        </div>
+        <div class="flex flex-wrap gap-3">
+            <a href="/analytics" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-5 py-3 rounded-xl">
+                📊 داشبورد تحلیلی
+            </a>
+            <a href="/update" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-5 py-3 rounded-xl">
+                🔄 بروزرسانی دستی محصولات
+            </a>
+            <a href="/" class="bg-slate-900 hover:bg-slate-800 text-white font-bold px-5 py-3 rounded-xl">
+                مشاهده سایت اصلی
+            </a>
+        </div>
+    </div>
+
+    <!-- ===================================================== -->
+    <!-- پیام‌های Flash -->
+    <!-- ===================================================== -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                {% if category == 'warning' %}
+                    <div class="mb-6 rounded-xl border border-amber-200 bg-amber-50 text-amber-800 px-5 py-4 font-bold">{{ message }}</div>
+                {% elif category == 'info' %}
+                    <div class="mb-6 rounded-xl border border-sky-200 bg-sky-50 text-sky-800 px-5 py-4 font-bold">{{ message }}</div>
+                {% else %}
+                    <div class="mb-6 rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-800 px-5 py-4 font-bold">{{ message }}</div>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    {% set verified_count = discounts|selectattr('verification_status', 'equalto', 'VERIFIED')|list|length %}
+    {% set suspicious_count = discounts|selectattr('verification_status', 'equalto', 'SUSPICIOUS')|list|length %}
+
+    <!-- ===================================================== -->
+    <!-- کارت‌های آمار -->
+    <!-- ===================================================== -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div class="bg-white rounded-2xl p-5 border border-slate-200">
+            <div class="text-sm text-slate-500">پیشنهادهای فعال</div>
+            <div class="text-3xl font-black mt-2">{{ total }}</div>
+        </div>
+        <div class="bg-white rounded-2xl p-5 border border-slate-200">
+            <div class="text-sm text-slate-500">فروشگاه‌های ثبت‌شده</div>
+            <div class="text-3xl font-black mt-2">{{ store_total }}</div>
+        </div>
+        <div class="bg-white rounded-2xl p-5 border border-emerald-200 bg-emerald-50">
+            <div class="text-sm text-emerald-700">تخفیف‌های تأیید شده</div>
+            <div class="text-3xl font-black mt-2 text-emerald-700">{{ verified_count }}</div>
+            <div class="text-xs text-rose-600 mt-1">{{ suspicious_count }} مورد مشکوک</div>
+        </div>
+        <div class="bg-white rounded-2xl p-5 border border-indigo-200 bg-indigo-50">
+            <div class="text-sm text-indigo-700">زمان‌بندی خودکار</div>
+            {% if scheduler and scheduler.active %}
+                <div class="text-lg font-black mt-2 text-emerald-700">فعال ✅</div>
+                <div class="text-xs text-slate-500 mt-1">اجرای بعدی: {{ scheduler.next_run }}</div>
+            {% else %}
+                <div class="text-lg font-black mt-2 text-rose-600">غیرفعال ❌</div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- ===================================================== -->
+    <!-- افزودن خودکار فروشگاه‌ها -->
+    <!-- ===================================================== -->
+    <section class="bg-white rounded-2xl p-6 border border-slate-200 mb-8">
+        <div class="flex flex-col md:flex-row justify-between gap-4 items-start md:items-center">
+            <div>
+                <h2 class="text-xl font-black text-slate-900">افزودن خودکار فروشگاه‌ها</h2>
+                <p class="text-sm text-slate-500 mt-2 leading-7">
+                    با یک کلیک، فهرست اولیه فروشگاه‌های منتخب در دیتابیس ثبت می‌شود.
+                    فروشگاه‌هایی که قبلاً ثبت شده‌اند دوباره ایجاد نمی‌شوند.
+                </p>
+            </div>
+            <form action="/admin/stores/seed" method="POST">
+                <button type="submit"
+                        class="w-full md:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-black px-6 py-4 rounded-xl shadow-sm">
+                    + افزودن خودکار فروشگاه‌ها
+                </button>
+            </form>
+        </div>
+    </section>
+
+    <!-- ===================================================== -->
+    <!-- جدول فروشگاه‌ها -->
+    <!-- ===================================================== -->
+    <section class="bg-white rounded-2xl p-6 border border-slate-200 overflow-x-auto mb-8">
+        <div class="flex justify-between items-center mb-5">
+            <h2 class="text-xl font-black">فروشگاه‌های ثبت‌شده</h2>
+            <span class="text-sm text-slate-500">{{ store_total }} فروشگاه</span>
+        </div>
+
+        <table class="w-full text-right">
+            <thead>
+                <tr class="border-b border-slate-200 text-slate-500 text-sm">
+                    <th class="p-3">فروشگاه</th>
+                    <th class="p-3">حوزه</th>
+                    <th class="p-3">وضعیت</th>
+                    <th class="p-3">وب‌سایت</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+            {% for store in stores %}
+                <tr class="text-sm">
+                    <td class="p-3 font-bold">{{ store.name }}</td>
+                    <td class="p-3 text-slate-600">{{ store.category }}</td>
+                    <td class="p-3">
+                        {% if store.is_active %}
+                            <span class="inline-flex px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 font-bold">فعال</span>
+                        {% else %}
+                            <span class="inline-flex px-3 py-1 rounded-full bg-slate-100 text-slate-500 font-bold">غیرفعال</span>
+                        {% endif %}
+                    </td>
+                    <td class="p-3">
+                        <a href="{{ store.website_url }}" target="_blank" rel="noopener noreferrer"
+                           class="text-indigo-600 hover:text-indigo-800 font-bold">
+                            مشاهده سایت
+                        </a>
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="4" class="p-8 text-center text-slate-500">
+                        هنوز فروشگاهی ثبت نشده است. روی دکمه «افزودن خودکار فروشگاه‌ها» کلیک کنید.
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </section>
+
+    <!-- ===================================================== -->
+    <!-- جدول آخرین پیشنهادها -->
+    <!-- ===================================================== -->
+    <section class="bg-white rounded-2xl p-6 border border-slate-200 overflow-x-auto">
+        <div class="flex justify-between items-center mb-5">
+            <h2 class="text-xl font-black">آخرین پیشنهادهای ثبت‌شده</h2>
+            <span class="text-sm text-slate-500">{{ discounts|length }} پیشنهاد</span>
+        </div>
+
+        <table class="w-full text-right">
+            <thead>
+                <tr class="border-b border-slate-200 text-slate-500 text-sm">
+                    <th class="p-3">محصول</th>
+                    <th class="p-3">فروشگاه</th>
+                    <th class="p-3">قیمت فعلی</th>
+                    <th class="p-3">تخفیف</th>
+                    <th class="p-3">وضعیت اعتبار</th>
+                    <th class="p-3">عملیات</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+            {% for item in discounts %}
+                <tr class="text-sm">
+                    <td class="p-3 font-bold max-w-xs truncate" title="{{ item.title }}">{{ item.title }}</td>
+                    <td class="p-3 text-slate-600">{{ item.store_name }}</td>
+                    <td class="p-3 font-bold text-emerald-700 whitespace-nowrap">
+                        {{ "{:,}".format(item.discounted_price) }} تومان
+                    </td>
+                    <td class="p-3">
+                        {% if item.discount_percent %}
+                            <span class="inline-flex px-3 py-1 rounded-full bg-rose-50 text-rose-700 font-bold">
+                                {{ item.discount_percent }}٪
+                            </span>
+                        {% else %}
+                            —
+                        {% endif %}
+                    </td>
+                    <td class="p-3">
+                        {% if item.verification_status == 'VERIFIED' %}
+                            <span data-tip="{{ item.verification_reason }}"
+                                  class="inline-flex px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 font-bold">
+                                ✅ تأیید شده
+                            </span>
+                        {% elif item.verification_status == 'LIKELY_REAL' %}
+                            <span data-tip="{{ item.verification_reason }}"
+                                  class="inline-flex px-3 py-1 rounded-full bg-sky-50 text-sky-700 font-bold">
+                                👍 احتمالاً واقعی
+                            </span>
+                        {% elif item.verification_status == 'SUSPICIOUS' %}
+                            <span data-tip="{{ item.verification_reason }}"
+                                  class="inline-flex px-3 py-1 rounded-full bg-rose-50 text-rose-700 font-bold">
+                                ⚠️ مشکوک
+                            </span>
+                        {% else %}
+                            <span data-tip="{{ item.verification_reason or 'داده کافی برای قضاوت موجود نیست' }}"
+                                  class="inline-flex px-3 py-1 rounded-full bg-slate-100 text-slate-500 font-bold">
+                                ❓ در حال بررسی
+                            </span>
+                        {% endif %}
+                    </td>
+                    <td class="p-3">
+                        <div class="flex gap-2">
+                            <a href="/product/{{ item.product_id }}"
+                               class="text-emerald-600 hover:text-emerald-800 font-bold whitespace-nowrap">
+                                📊 جزئیات
+                            </a>
+                            <a href="{{ item.link }}" target="_blank" rel="noopener noreferrer"
+                               class="text-indigo-600 hover:text-indigo-800 font-bold whitespace-nowrap">
+                                مشاهده
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="6" class="p-8 text-center text-slate-500">
+                        هنوز پیشنهادی ثبت نشده است. از دکمه «بروزرسانی دستی محصولات» استفاده کنید.
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </section>
+
+</div>
+</body>
+</html>

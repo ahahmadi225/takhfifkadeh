@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>پنل مدیریت تخفیفات</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" />
+    <style>body { font-family: 'Vazirmatn', sans-serif; }</style>
+</head>
+<body class="bg-slate-100 min-h-screen text-slate-800 p-4 md:p-8">
+
+    <div class="max-w-4xl mx-auto">
+        <div class="flex justify-between items-center mb-8">
+            <h1 class="text-2xl font-bold text-slate-900">⚙️ پنل مدیریت کدهای تخفیف</h1>
+            <a href="/" class="bg-slate-800 hover:bg-slate-900 text-white text-sm font-bold px-4 py-2 rounded-xl">مشاهده سایت اصلی ←</a>
+        </div>
+
+        <!-- فرم افزودن کد دستی -->
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 mb-8">
+            <h2 class="text-lg font-bold text-slate-900 mb-4">➕ افزودن کد تخفیف جدید</h2>
+            <form action="/admin/add" method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <input type="text" name="title" placeholder="عنوان تخفیف (مثلا: تخفیف ۵۰ درصدی)" required class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <input type="text" name="store" placeholder="نام فروشگاه (مثلا: Digikala)" required class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <input type="text" name="code" placeholder="کد تخفیف (مثلا: OFF50)" required class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <input type="number" name="percent" placeholder="درصد تخفیف (مثلا: 50)" required class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <input type="url" name="link" placeholder="لینک فروشگاه (https://...)" class="md:col-span-2 bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                
+                <button type="submit" class="md:col-span-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold p-3 rounded-xl transition-colors">ثبت و ذخیره کد تخفیف</button>
+            </form>
+        </div>
+
+        <!-- جدول مدیریت کدهای موجود -->
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 overflow-x-auto">
+            <h2 class="text-lg font-bold text-slate-900 mb-4">📋 مدیریت کدهای موجود (کل: {{ total }} عدد)</h2>
+            <table class="w-full text-right border-collapse">
+                <thead>
+                    <tr class="border-b border-slate-200 text-slate-500 text-xs">
+                        <th class="p-3">عنوان</th>
+                        <th class="p-3">فروشگاه</th>
+                        <th class="p-3">کد</th>
+                        <th class="p-3">درصد</th>
+                        <th class="p-3 text-center">عملیات</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 text-sm">
+                    {% for item in discounts %}
+                    <tr>
+                        <td class="p-3 font-medium">{{ item[1] }}</td>
+                        <td class="p-3"><span class="bg-slate-100 text-slate-700 px-2 py-1 rounded text-xs">{{ item[2] }}</span></td>
+                        <td class="p-3"><code class="text-red-600 font-mono font-bold">{{ item[3] }}</code></td>
+                        <td class="p-3 font-bold text-emerald-600">{{ item[4] }}%</td>
+                        <td class="p-3 text-center">
+                            <a href="/admin/delete/{{ item[0] }}" onclick="return confirm('آیا از حذف این کد اطمینان دارید؟')" class="bg-red-50 hover:bg-red-100 text-red-600 font-bold px-3 py-1.5 rounded-lg text-xs transition-colors">حذف ❌</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</body>
+</html>

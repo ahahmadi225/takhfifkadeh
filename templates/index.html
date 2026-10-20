@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>تخفیف‌کده | مقایسه هوشمند قیمت‌ها</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Tahoma, Arial, sans-serif; background: #f5f7fa; color: #2c3e50; }
+        .header { background: linear-gradient(135deg, #1976d2, #1565c0); color: white; padding: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .header-content { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
+        .logo { font-size: 1.5rem; font-weight: bold; text-decoration: none; color: white; }
+        .nav-links { display: flex; gap: 20px; }
+        .nav-links a { color: white; text-decoration: none; padding: 8px 16px; border-radius: 20px; transition: background 0.3s; }
+        .nav-links a:hover { background: rgba(255,255,255,0.2); }
+        .search-section { background: white; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .search-container { max-width: 800px; margin: 0 auto; }
+        .search-box { display: flex; gap: 10px; margin-bottom: 15px; }
+        .search-input { flex: 1; padding: 12px 18px; border: 2px solid #e0e6ed; border-radius: 10px; font-size: 1rem; outline: none; }
+        .search-input:focus { border-color: #1976d2; }
+        .search-btn { padding: 12px 28px; background: #1976d2; color: white; border: none; border-radius: 10px; font-size: 1rem; cursor: pointer; }
+        .search-btn:hover { background: #1565c0; }
+        .filters { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+        .filter-select { padding: 10px 15px; border: 2px solid #e0e6ed; border-radius: 8px; font-size: 0.9rem; background: white; cursor: pointer; }
+        .filter-select:focus { border-color: #1976d2; outline: none; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 25px 15px; }
+        .results-info { background: white; padding: 15px 20px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); display: flex; justify-content: space-between; align-items: center; }
+        .results-count { font-weight: bold; color: #1976d2; }
+        .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+        .product-card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); transition: all 0.3s; text-decoration: none; color: inherit; display: block; position: relative; }
+        .product-card:hover { transform: translateY(-4px); box-shadow: 0 4px 16px rgba(0,0,0,0.12); }
+        .img-container { width: 100%; height: 200px; background: #f8f9fa; border-radius: 8px; margin-bottom: 15px; display: flex; align-items: center; justify-content: center; overflow: hidden; border: 1px solid #e9ecef; }
+        .img-container img { max-width: 100%; max-height: 100%; object-fit: contain; }
+        .product-title { font-size: 1rem; font-weight: 600; margin-bottom: 15px; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 48px; }
+        .price-section { margin-top: 15px; padding-top: 15px; border-top: 1px solid #e0e6ed; }
+        .price-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .current-price { font-size: 1.2rem; font-weight: bold; color: #2e7d32; }
+        .original-price { font-size: 0.9rem; color: #95a5a6; text-decoration: line-through; }
+        .discount-badge { background: #ffebee; color: #c62828; padding: 4px 10px; border-radius: 12px; font-size: 0.85rem; font-weight: bold; }
+        .store-info { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: #7f8c8d; margin-top: 10px; }
+        .verification-badge { position: absolute; top: 10px; right: 10px; padding: 6px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; display: flex; align-items: center; gap: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); z-index: 10; }
+        .verification-badge.verified { background: #d4edda; color: #155724; border: 1px solid #28a745; }
+        .verification-badge.likely { background: #fff3cd; color: #856404; border: 1px solid #ffc107; }
+        .verification-badge.suspicious { background: #f8d7da; color: #721c24; border: 1px solid #dc3545; }
+        .empty-state { text-align: center; padding: 60px 20px; background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+        .empty-icon { font-size: 4rem; margin-bottom: 20px; opacity: 0.5; }
+        .footer { background: #2c3e50; color: white; text-align: center; padding: 30px 15px; margin-top: 40px; }
+        @media (max-width: 768px) { .header-content { flex-direction: column; text-align: center; } .product-grid { grid-template-columns: 1fr; } .search-box { flex-direction: column; } .filters { flex-direction: column; } .filter-select { width: 100%; } }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <a href="/" class="logo"> تخفیف‌کده</a>
+            <nav class="nav-links">
+                <a href="/">صفحه اصلی</a>
+                <a href="/analytics">آمار</a>
+                <a href="/admin">مدیریت</a>
+            </nav>
+        </div>
+    </header>
+    <section class="search-section">
+        <div class="search-container">
+            <form action="/" method="get" class="search-box">
+                <input type="text" name="q" class="search-input" placeholder="🔍 جستجوی نام محصول..." value="{{ q or '' }}">
+                <button type="submit" class="search-btn">جستجو</button>
+            </form>
+            <div class="filters">
+                <form action="/" method="get" style="display: contents;">
+                    {% if q %}<input type="hidden" name="q" value="{{ q }}">{% endif %}
+                    <select name="store" class="filter-select" onchange="this.form.submit()">
+                        <option value="">همه فروشگاه‌ها</option>
+                        {% for store in stores %}<option value="{{ store.slug }}" {% if current_store == store.slug %}selected{% endif %}>{{ store.name }}</option>{% endfor %}
+                    </select>
+                    <select name="sort" class="filter-select" onchange="this.form.submit()">
+                        {% for key, label in sort_options.items() %}<option value="{{ key }}" {% if current_sort == key %}selected{% endif %}>{{ label }}</option>{% endfor %}
+                    </select>
+                    <select name="verification" class="filter-select" onchange="this.form.submit()">
+                        {% for key, label in status_options.items() %}<option value="{{ key }}" {% if current_verification == key %}selected{% endif %}>{{ label }}</option>{% endfor %}
+                    </select>
+                    <select name="min_disc" class="filter-select" onchange="this.form.submit()">
+                        {% for key, label in min_discount_options.items() %}<option value="{{ key }}" {% if current_min_disc == key %}selected{% endif %}>{{ label }}</option>{% endfor %}
+                    </select>
+                </form>
+            </div>
+        </div>
+    </section>
+    <main class="container">
+        {% if discounts %}
+        <div class="results-info">
+            <span class="results-count">{{ discounts|length }} محصول تخفیف‌دار یافت شد</span>
+            {% if has_filter %}<a href="/" style="color: #1976d2; text-decoration: none;">پاک کردن فیلترها</a>{% endif %}
+        </div>
+        <div class="product-grid">
+            {% for offer in discounts %}
+            <a href="/product/{{ offer.product_id }}" class="product-card">
+                {% set v_status = offer.verification_status %}
+                {% if v_status == 'VERIFIED' %}<div class="verification-badge verified">✅ واقعی</div>
+                {% elif v_status == 'LIKELY_REAL' %}<div class="verification-badge likely">🟡 احتمالاً واقعی</div>
+                {% elif v_status == 'SUSPICIOUS' %}<div class="verification-badge suspicious">⚠️ مشکوک</div>
+                {% else %}<div class="verification-badge likely">🔍 در انتظار</div>{% endif %}
+                <div class="img-container"><img src="https://via.placeholder.com/200x150/e9ecef/7f8c8d?text=No+Image" alt="بدون تصویر"></div>
+                <div class="product-title">{{ offer.title }}</div>
+                <div class="price-section">
+                    <div class="price-row">
+                        <span class="current-price">{{ "{:,}".format(offer.current_price or 0) }} تومان</span>
+                        {% if offer.discount_percent and offer.discount_percent > 0 %}<span class="discount-badge">{{ offer.discount_percent }}% تخفیف</span>{% endif %}
+                    </div>
+                    {% if offer.original_price and offer.original_price > (offer.current_price or 0) %}
+                    <div class="price-row"><span class="original-price">{{ "{:,}".format(offer.original_price) }} تومان</span></div>
+                    {% endif %}
+                    <div class="store-info">🏬 {{ offer.store_name }}</div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state"><div class="empty-icon">🔍</div><h3>محصولی یافت نشد</h3><p>لطفاً عبارت جستجو را تغییر دهید یا فیلترها را پاک کنید</p></div>
+        {% endif %}
+    </main>
+    <footer class="footer"><p>تخفیف‌کده © 2024 | مقایسه هوشمند قیمت‌ها با هوش مصنوعی</p></footer>
+    
+    <script>
+        // unregister Service Worker برای جلوگیری از cache
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                for(let registration of registrations) {
+                    registration.unregister();
+                }
+            });
+        }
+    </script>
+</body>
+</html>

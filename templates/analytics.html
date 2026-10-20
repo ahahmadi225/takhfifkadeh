@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>داشبورد تحلیلی | تخفیف‌کده</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css">
+    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        body { font-family: 'Vazirmatn', sans-serif; background: #f5f6fa; }
+        .navbar-brand { font-weight: 800; }
+        .stat-card {
+            background: #fff;
+            border-radius: 1rem;
+            border: 1px solid #e5e7eb;
+            padding: 1.25rem;
+            height: 100%;
+        }
+        .stat-value { font-size: 1.9rem; font-weight: 800; }
+        .chart-box {
+            background: #fff;
+            border-radius: 1rem;
+            border: 1px solid #e5e7eb;
+            padding: 1.25rem;
+            height: 100%;
+        }
+        .chart-container { position: relative; height: 280px; }
+        .v-VERIFIED    { background: #d1fae5; color: #065f46; }
+        .v-LIKELY_REAL { background: #dbeafe; color: #1e40af; }
+        .v-SUSPICIOUS  { background: #fee2e2; color: #991b1b; }
+        .v-UNKNOWN     { background: #f3f4f6; color: #4b5563; }
+        .j-SUCCESS { background: #d1fae5; color: #065f46; }
+        .j-PARTIAL { background: #fef3c7; color: #92400e; }
+        .j-FAILED  { background: #fee2e2; color: #991b1b; }
+        .j-RUNNING { background: #dbeafe; color: #1e40af; }
+        footer { color: #9ca3af; }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg bg-white shadow-sm mb-4">
+    <div class="container">
+        <span class="navbar-brand fs-4">📊 داشبورد تحلیلی</span>
+        <div class="d-flex gap-2">
+            <a href="/" class="btn btn-outline-secondary btn-sm">صفحه اصلی</a>
+            <a href="/admin" class="btn btn-outline-secondary btn-sm">پنل مدیریت</a>
+        </div>
+    </div>
+</nav>
+
+<div class="container pb-5">
+
+    <!-- ===================================================== -->
+    <!-- کارت‌های آمار کلی -->
+    <!-- ===================================================== -->
+    {% set success_rate = (overview.ok_jobs * 100 / overview.total_jobs)|round(0) if overview.total_jobs else 0 %}
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-4 col-lg-2">
+            <div class="stat-card">
+                <div class="small text-muted">محصولات فعال</div>
+                <div class="stat-value">{{ overview.products or 0 }}</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-4 col-lg-2">
+            <div class="stat-card">
+                <div class="small text-muted">پیشنهادهای فعال</div>
+                <div class="stat-value">{{ overview.offers or 0 }}</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-4 col-lg-2">
+            <div class="stat-card">
+                <div class="small text-muted">فروشگاه‌های فعال</div>
+                <div class="stat-value">{{ overview.active_stores or 0 }}</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-4 col-lg-2">
+            <div class="stat-card">
+                <div class="small text-muted">نقاط ثبت قیمت</div>
+                <div class="stat-value">{{ overview.history_points or 0 }}</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-4 col-lg-2">
+            <div class="stat-card">
+                <div class="small text-muted">میانگین تخفیف</div>
+                <div class="stat-value text-danger">
+                    {{ overview.avg_discount or 0 }}٪
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-4 col-lg-2">
+            <div class="stat-card">
+                <div class="small text-muted">موفقیت اسکرپ</div>
+                <div class="stat-value text-success">{{ success_rate }}٪</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================================== -->
+    <!-- نمودارها -->
+    <!-- ===================================================== -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-5">
+            <div class="chart-box">
+                <h6 class="fw-bold mb-3">توزیع وضعیت اعتبار تخفیف‌ها</h6>
+                <div class="chart-container">
+                    <canvas id="chartVerification"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-7">
+            <div class="chart-box">
+                <h6 class="fw-bold mb-3">تعداد پیشنهاد به تفکیک فروشگاه</h6>
+                <div class="chart-container">
+                    <canvas id="chartStoreOffers"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-6">
+            <div class="chart-box">
+                <h6 class="fw-bold mb-3">میانگین درصد تخفیف هر فروشگاه</h6>
+                <div class="chart-container">
+                    <canvas id="chartStoreDiscount"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="chart-box">
+                <h6 class="fw-bold mb-3">روند ثبت قیمت (30 روز اخیر)</h6>
+                <div class="chart-container">
+                    {% if trend %}
+                        <canvas id="chartTrend"></canvas>
+                    {% else %}
+                        <div class="alert alert-light border text-center text-muted mt-5">
+                            هنوز داده‌ای برای نمایش روند وجود ندارد.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================================== -->
+    <!-- بهترین تخفیف‌ها -->
+    <!-- ===================================================== -->
+    <div class="chart-box mb-4">
+        <h6 class="fw-bold mb-3">🏆 بیشترین تخفیف‌های کشف‌شده</h6>
+        <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>محصول</th>
+                        <th>فروشگاه</th>
+                        <th>قیمت فعلی</th>
+                        <th>تخفیف</th>
+                        <th>اعتبار</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for item in top_discounts %}
+                    <tr>
+                        <td>
+                            <a href="/product/{{ item.product_id }}"
+                               class="text-decoration-none text-dark">
+                                {{ item.title[:60] }}{% if item.title|length > 60 %}…{% endif %}
+                            </a>
+                        </td>
+                        <td>{{ item.store_name }}</td>
+                        <td class="text-success fw-bold">
+                            {{ "{:,}".format(item.current_price) }}
+                        </td>
+                        <td><span class="badge bg-danger">{{ item.discount_percent }}٪</span></td>
+                        <td>
+                            <span class="badge v-{{ item.verification_status or 'UNKNOWN' }}">
+                                {% if item.verification_status == 'VERIFIED' %}✅
+                                {% elif item.verification_status == 'LIKELY_REAL' %}👍
+                                {% elif item.verification_status == 'SUSPICIOUS' %}⚠️
+                                {% else %}❓{% endif %}
+                            </span>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr><td colspan="5" class="text-center text-muted p-4">داده‌ای موجود نیست.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <!-- ================================================= -->
+        <!-- تخفیف‌های مشکوک -->
+        <!-- ================================================= -->
+        <div class="col-lg-6">
+            <div class="chart-box h-100">
+                <h6 class="fw-bold mb-3">⚠️ تخفیف‌های مشکوک (تشخیص موتور)</h6>
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>محصول</th>
+                                <th>فروشگاه</th>
+                                <th>تخفیف ادعایی</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% for item in suspicious %}
+                            <tr>
+                                <td>
+                                    <a href="/product/{{ item.product_id }}"
+                                       class="text-decoration-none text-dark"
+                                       title="{{ item.reason }}">
+                                        {{ item.title[:45] }}{% if item.title|length > 45 %}…{% endif %}
+                                    </a>
+                                </td>
+                                <td>{{ item.store_name }}</td>
+                                <td><span class="badge bg-danger">{{ item.discount_percent or 0 }}٪</span></td>
+                            </tr>
+                        {% else %}
+                            <tr><td colspan="3" class="text-center text-muted p-4">مورد مشکوکی ثبت نشده است. 🎉</td></tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================================================= -->
+        <!-- آخرین اجراهای اسکرپ -->
+        <!-- ================================================= -->
+        <div class="col-lg-6">
+            <div class="chart-box h-100">
+                <h6 class="fw-bold mb-3">🕒 آخرین اجراهای اسکرپ</h6>
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>فروشگاه</th>
+                                <th>وضعیت</th>
+                                <th>ثبت‌شده</th>
+                                <th>خطا</th>
+                                <th>زمان</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% for job in jobs %}
+                            <tr>
+                                <td>{{ job.store_name or '—' }}</td>
+                                <td><span class="badge j-{{ job.status }}">{{ job.status }}</span></td>
+                                <td>{{ job.products_saved }}</td>
+                                <td>{{ job.error_count }}</td>
+                                <td class="small text-muted">{{ job.started_at or '—' }}</td>
+                            </tr>
+                        {% else %}
+                            <tr><td colspan="5" class="text-center text-muted p-4">اجرایی ثبت نشده است.</td></tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================================== -->
+    <!-- لینک‌های API -->
+    <!-- ===================================================== -->
+    <div class="chart-box mb-4">
+        <h6 class="fw-bold mb-3">🔌 دسترسی API (JSON)</h6>
+        <div class="row g-2 small">
+            <div class="col-md-6"><code>GET /api/products?q=&store=&sort=&limit=</code> — لیست پیشنهادها</div>
+            <div class="col-md-6"><code>GET /api/product/&lt;id&gt;</code> — جزئیات محصول + تاریخچه قیمت</div>
+            <div class="col-md-6"><code>GET /api/stores</code> — لیست فروشگاه‌ها</div>
+            <div class="col-md-6"><code>GET /api/stats</code> — آمار کلی سامانه</div>
+        </div>
+    </div>
+
+    <footer class="text-center mt-4 pt-3 border-top small">
+        تخفیف‌کده — داشبورد تحلیلی
+    </footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    const STATUS_FA = {
+        VERIFIED: 'تأیید شده',
+        LIKELY_REAL: 'احتمالاً واقعی',
+        SUSPICIOUS: 'مشکوک',
+        UNKNOWN: 'در حال بررسی'
+    };
+    const STATUS_COLOR = {
+        VERIFIED: '#10b981',
+        LIKELY_REAL: '#3b82f6',
+        SUSPICIOUS: '#ef4444',
+        UNKNOWN: '#9ca3af'
+    };
+
+    Chart.defaults.font.family = 'Vazirmatn';
+
+    const VERIFICATION = {{ verification|tojson }};
+    const STORE_STATS  = {{ store_stats|tojson }};
+    const TREND        = {{ trend|tojson }};
+
+    // -----------------------------------------------------
+    // نمودار دایره‌ای توزیع اعتبار
+    // -----------------------------------------------------
+    if (VERIFICATION.length) {
+        new Chart(document.getElementById('chartVerification'), {
+            type: 'doughnut',
+            data: {
+                labels: VERIFICATION.map(v => STATUS_FA[v.status] || v.status),
+                datasets: [{
+                    data: VERIFICATION.map(v => v.count),
+                    backgroundColor: VERIFICATION.map(v => STATUS_COLOR[v.status] || '#6b7280'),
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom' },
+                    tooltip: {
+                        callbacks: {
+                            label: ctx => ' ' + ctx.parsed.toLocaleString('fa-IR') + ' پیشنهاد'
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // -----------------------------------------------------
+    // نمودار میله‌ای تعداد پیشنهاد هر فروشگاه
+    // -----------------------------------------------------
+    if (STORE_STATS.length) {
+        new Chart(document.getElementById('chartStoreOffers'), {
+            type: 'bar',
+            data: {
+                labels: STORE_STATS.map(s => s.name),
+                datasets: [{
+                    label: 'تعداد پیشنهاد',
+                    data: STORE_STATS.map(s => s.offer_count),
+                    backgroundColor: '#6366f1',
+                    borderRadius: 6,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true } }
+            }
+        });
+
+        // -------------------------------------------------
+        // نمودار میله‌ای میانگین تخفیف هر فروشگاه
+        // -------------------------------------------------
+        new Chart(document.getElementById('chartStoreDiscount'), {
+            type: 'bar',
+            data: {
+                labels: STORE_STATS.map(s => s.name),
+                datasets: [{
+                    label: 'میانگین تخفیف (٪)',
+                    data: STORE_STATS.map(s => s.avg_discount || 0),
+                    backgroundColor: '#ef4444',
+                    borderRadius: 6,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true } }
+            }
+        });
+    }
+
+    // -----------------------------------------------------
+    // نمودار خطی روند ثبت قیمت
+    // -----------------------------------------------------
+    if (TREND.length) {
+        new Chart(document.getElementById('chartTrend'), {
+            type: 'line',
+            data: {
+                labels: TREND.map(t => t.day),
+                datasets: [
+                    {
+                        label: 'تعداد ثبت قیمت',
+                        data: TREND.map(t => t.points),
+                        borderColor: '#6366f1',
+                        backgroundColor: 'rgba(99,102,241,.15)',
+                        fill: true,
+                        tension: .3,
+                        yAxisID: 'y',
+                    },
+                    {
+                        label: 'میانگین تخفیف (٪)',
+                        data: TREND.map(t => t.avg_discount),
+                        borderColor: '#f59e0b',
+                        tension: .3,
+                        yAxisID: 'y1',
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'bottom' } },
+                scales: {
+                    y:  { beginAtZero: true, position: 'right' },
+                    y1: { beginAtZero: true, position: 'left', grid: { drawOnChartArea: false } }
+                }
+            }
+        });
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>{{ product['title'] if product and 'title' in product else 'محصول' }} | تخفیف‌کده</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Tahoma, Arial, sans-serif; background: #f5f7fa; color: #2c3e50; line-height: 1.6; }
+        .header { background: linear-gradient(135deg, #1976d2, #1565c0); color: white; padding: 15px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .header a { color: white; text-decoration: none; font-weight: bold; display: flex; align-items: center; gap: 8px; }
+        .container { max-width: 900px; margin: 20px auto; padding: 0 15px; }
+        .card { background: white; border-radius: 12px; padding: 25px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+        .product-title { font-size: 1.4rem; font-weight: bold; margin-bottom: 15px; line-height: 1.6; color: #1a202c; }
+        .image-container { width: 100%; height: 300px; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 12px; margin-bottom: 20px; display: flex; align-items: center; justify-content: center; overflow: hidden; border: 1px solid #dee2e6; }
+        .image-container img { max-width: 100%; max-height: 100%; object-fit: contain; }
+        .image-placeholder { text-align: center; color: #6c757d; }
+        .image-placeholder .icon { font-size: 4rem; margin-bottom: 10px; opacity: 0.5; }
+        .verification-badge { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 25px; font-weight: bold; font-size: 1rem; margin-bottom: 20px; }
+        .verification-badge.verified { background: #d4edda; color: #155724; border: 2px solid #28a745; }
+        .verification-badge.likely { background: #fff3cd; color: #856404; border: 2px solid #ffc107; }
+        .verification-badge.suspicious { background: #f8d7da; color: #721c24; border: 2px solid #dc3545; }
+        .verification-badge.unknown { background: #e2e3e5; color: #383d41; border: 2px solid #6c757d; }
+        .verification-details { background: #f8f9fa; padding: 15px; border-radius: 10px; margin-top: 15px; font-size: 0.9rem; }
+        .verification-details p { margin-bottom: 8px; }
+        .verification-details strong { color: #495057; }
+        .warning-box { background: #fff3cd; padding: 12px; border-radius: 8px; margin-top: 15px; font-size: 0.9rem; border: 1px solid #ffc107; }
+        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 20px; }
+        .stat-box { background: #f8f9fa; padding: 15px; border-radius: 10px; text-align: center; border: 1px solid #e9ecef; }
+        .stat-label { font-size: 0.8rem; color: #6c757d; margin-bottom: 5px; }
+        .stat-value { font-size: 1.1rem; font-weight: bold; color: #1976d2; }
+        .offer-item { border: 1px solid #e9ecef; border-radius: 10px; padding: 15px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        .offer-item.best { border: 2px solid #2e7d32; background: #f1f8e9; }
+        .store-name { font-weight: bold; color: #1976d2; font-size: 1rem; }
+        .price { font-size: 1.2rem; font-weight: bold; color: #2e7d32; }
+        .original-price { text-decoration: line-through; color: #95a5a6; font-size: 0.85rem; }
+        .discount-badge { background: #ffebee; color: #c62828; padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: bold; }
+        .btn { display: inline-block; padding: 10px 20px; background: #1976d2; color: white; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 0.9rem; transition: background 0.2s; }
+        .btn:hover { background: #1565c0; }
+        .best-badge { background: #2e7d32; color: white; padding: 4px 12px; border-radius: 12px; font-size: 0.75rem; font-weight: bold; }
+        @media (max-width: 768px) {
+            .product-title { font-size: 1.2rem; }
+            .image-container { height: 200px; }
+            .offer-item { flex-direction: column; align-items: flex-start; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <a href="/">🛒 بازگشت به صفحه اصلی</a>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <!-- تصویر محصول -->
+            <div class="image-container">
+                {% if product and product.get('image_url') %}
+                    <img src="{{ product['image_url'] }}" alt="{{ product['title'] }}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <div class="image-placeholder" style="display: none; flex-direction: column;">
+                        <div class="icon">️</div>
+                        <div class="text">{{ product['title'][:30] if product['title'] else 'محصول' }}...</div>
+                    </div>
+                {% else %}
+                    <div class="image-placeholder" style="display: flex; flex-direction: column;">
+                        <div class="icon">🛍️</div>
+                        <div class="text">{{ product['title'][:30] if product and product['title'] else 'محصول' }}...</div>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- عنوان محصول -->
+            <h1 class="product-title">{{ product['title'] if product and product['title'] else 'بدون عنوان' }}</h1>
+
+            <!-- دسته‌بندی -->
+            {% if product and product.get('category') %}
+                <p style="color: #6c757d; margin-bottom: 20px; font-size: 0.9rem;">📦 دسته‌بندی: {{ product['category'] }}</p>
+            {% endif %}
+
+            <!-- Badge اعتبارسنجی -->
+            {% if verification %}
+                {% set status = verification['status'] if verification['status'] else 'UNKNOWN' %}
+                {% if status == 'VERIFIED' %}
+                    <div class="verification-badge verified"><span>✅</span><span>تخفیف واقعی و معتبر</span></div>
+                {% elif status == 'LIKELY_REAL' %}
+                    <div class="verification-badge likely"><span>🟡</span><span>احتمالاً واقعی</span></div>
+                {% elif status == 'SUSPICIOUS' %}
+                    <div class="verification-badge suspicious"><span>⚠️</span><span>تخفیف مشکوک یا ساختگی</span></div>
+                {% elif status == 'NEEDS_RECHECK' %}
+                    <div class="verification-badge unknown"><span>🔄</span><span>نیاز به بررسی مجدد</span></div>
+                {% else %}
+                    <div class="verification-badge unknown"><span>🔍</span><span>در حال بررسی</span></div>
+                {% endif %}
+
+                <!-- جزئیات اعتبارسنجی -->
+                <div class="verification-details">
+                    {% if verification.get('reason') %}<p><strong>دلیل:</strong> {{ verification['reason'] }}</p>{% endif %}
+                    {% if verification.get('score') is not none %}<p><strong>امتیاز اطمینان:</strong> {{ verification['score'] }}</p>{% endif %}
+                    {% if verification.get('claimed_discount_percent') %}<p><strong>تخفیف اعلامی:</strong> {{ verification['claimed_discount_percent'] }}٪</p>{% endif %}
+                    {% if verification.get('checked_at') %}<p><strong>آخرین بررسی:</strong> {{ verification['checked_at'] }}</p>{% endif %}
+                </div>
+            {% else %}
+                <div class="verification-badge unknown"><span>⏳</span><span>اعتبارسنجی انجام نشده است</span></div>
+            {% endif %}
+
+            <!-- هشدار تاریخ به‌روزرسانی -->
+            {% if product and product.get('last_seen_at') %}
+            <div class="warning-box">
+                <strong>⚠️ توجه:</strong> آخرین به‌روزرسانی قیمت این محصول در تاریخ 
+                <strong>{{ product['last_seen_at'] }}</strong> 
+                بوده است. لطفاً قبل از خرید، قیمت را در سایت فروشگاه تأیید کنید.
+            </div>
+            {% endif %}
+
+            <!-- آمار -->
+            <div class="stats">
+                <div class="stat-box"><div class="stat-label">تعداد فروشگاه</div><div class="stat-value">{{ offers|length }}</div></div>
+                {% if offers %}
+                <div class="stat-box"><div class="stat-label">ارزان‌ترین قیمت</div><div class="stat-value" style="color: #2e7d32;">{{ "{:,}".format(offers[0]['current_price']) }} ت</div></div>
+                <div class="stat-box"><div class="stat-label">گران‌ترین قیمت</div><div class="stat-value">{{ "{:,}".format(offers[-1]['current_price']) }} ت</div></div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- لیست فروشگاه‌ها -->
+        <div class="card">
+            <h2 style="margin-bottom: 15px; font-size: 1.2rem;">🏬 لیست قیمت فروشگاه‌ها</h2>
+            {% if offers %}
+                {% for offer in offers %}
+                <div class="offer-item {% if loop.first %}best{% endif %}">
+                    <div style="flex: 1;">
+                        <div class="store-name">{{ offer['store_name'] }}</div>
+                        {% if offer['discount_percent'] > 0 %}<span class="discount-badge">{{ offer['discount_percent'] }}% تخفیف</span>{% endif %}
+                        {% if offer['original_price'] > offer['current_price'] %}<div class="original-price">{{ "{:,}".format(offer['original_price']) }} تومان</div>{% endif %}
+                    </div>
+                    <div style="text-align: left; min-width: 120px;">
+                        <div class="price">{{ "{:,}".format(offer['current_price']) }} ت</div>
+                        {% if loop.first %}<span class="best-badge">ارزان‌ترین</span>{% endif %}
+                    </div>
+                    {% if offer['product_url'] and offer['product_url'] != '#' %}<a href="{{ offer['product_url'] }}" target="_blank" class="btn">خرید</a>{% endif %}
+                </div>
+                {% endfor %}
+            {% else %}
+                <p style="text-align: center; color: #6c757d; padding: 20px;">هیچ پیشنهادی برای این محصول ثبت نشده است.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        // Unregister Service Worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                for(let registration of registrations) { registration.unregister(); }
+            });
+        }
+    </script>
+</body>
+</html>

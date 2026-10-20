@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 app = Flask(__name__)
 app.secret_key = "takhfifkadeh-secret-key"
 
-DB_PATH = '/home/entezar77/takhfifkadeh/takhfifkodeh.db'
+   DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'takhfifkodeh.db')
 UPDATE_SECRET_KEY = "takhfifkadeh-secret-2024-entezar77"
 
 def get_db():
